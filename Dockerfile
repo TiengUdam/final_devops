@@ -1,16 +1,18 @@
-FROM php:8.2-fpm
+FROM php:8.2-apache
 
 RUN apt-get update && apt-get install -y \
     git curl libpng-dev libonig-dev \
-    libxml2-dev libpq-dev zip unzip nginx gettext-base \
+    libxml2-dev libpq-dev zip unzip \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
 RUN docker-php-ext-install pdo pdo_pgsql pgsql mbstring bcmath gd
 
+RUN a2enmod rewrite
+
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-WORKDIR /var/www
+WORKDIR /var/www/html
 
 COPY composer.json composer.lock ./
 
@@ -25,15 +27,12 @@ COPY . .
 
 RUN php -d memory_limit=-1 /usr/bin/composer dump-autoload --optimize
 
-RUN chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache
-RUN chmod -R 775 /var/www/storage /var/www/bootstrap/cache
+RUN chown -R www-data:www-data storage bootstrap/cache
+RUN chmod -R 775 storage bootstrap/cache
 
-COPY nginx.conf /etc/nginx/sites-available/default
-
-EXPOSE 80
+RUN sed -i 's|/var/www/html|/var/www/html/public|g' \
+    /etc/apache2/sites-available/000-default.conf
 
 CMD php artisan config:cache && \
     php artisan migrate --force && \
-    envsubst '$PORT' < /etc/nginx/sites-available/default > /etc/nginx/sites-enabled/default && \
-    service nginx start && \
-    php-fpm -F
+    apache2-foreground

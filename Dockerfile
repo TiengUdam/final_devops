@@ -41,4 +41,8 @@ COPY nginx.conf /etc/nginx/sites-available/default
 
 EXPOSE 80
 
-CMD service nginx start && php-fpm
+CMD php artisan config:cache && \
+    php artisan migrate --force && \
+    envsubst '$PORT' < /etc/nginx/sites-available/default > /etc/nginx/sites-enabled/default && \
+    service nginx start && \
+    php-fpm -F

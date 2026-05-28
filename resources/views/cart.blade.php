@@ -194,7 +194,7 @@
 <!-- HEADER / NAVBAR -->
 <nav class="navbar navbar-expand-lg sticky-top">
     <div class="container">
-        <a class="navbar-brand" href="/"><i class=""></i>Nang Cafe</a>
+        <a class="navbar-brand" href="/"><i class=""></i>Dom Phone</a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
             <span class="navbar-toggler-icon"></span>
         </button>
@@ -330,7 +330,7 @@
     <div class="container">
         <div class="row">
             <div class="col-md-4 mb-4">
-                <h5 class="footer-title">Nang Cafe</h5>
+                <h5 class="footer-title">Dom Cafe</h5>
                 <p class="text-secondary">Welocome to cafe</p>
                 <div class="mt-3">
                     <a href="#" class="text-white me-3 fs-5"><i class="fab fa-facebook"></i></a>
@@ -358,7 +358,7 @@
             </div>
         </div>
         <hr class="border-secondary mt-4">
-        <p class="text-center text-secondary small mb-0">&copy; Nang Cafe. All rights reserved.</p>
+        <p class="text-center text-secondary small mb-0">&copy; iPhone shopping DomShop. All rights reserved.</p>
     </div>
 </footer>
 

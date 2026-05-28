@@ -182,11 +182,11 @@
                                 <div class="col-md-6 mb-4">
                                     <label class="form-label">Category</label>
                                     <select name="category" class="form-select">
-                                        <option value="Matcha">Matcha</option>
-                                        <option value="Coffee">Coffee</option>
-                                        <option value="Tea">Tea</option>
-                                        <option value="Frappe">Hot</option>
-                                        <option value="Hot">Frappe</option>
+                                        <option value="iPhone">iPhone</option>
+                                        <option value="Samsung">Samsung</option>
+                                        <option value="Vivo">Vivo</option>
+                                        <option value="Oppo">Oppo</option>
+                                        <option value="Nokia">Nokia</option>
                                     </select>
                                 </div>
                             </div>

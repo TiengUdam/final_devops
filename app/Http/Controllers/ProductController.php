@@ -33,26 +33,53 @@ class ProductController extends Controller
     }
 
     // ADD TO CART
-    public function addToCart($id)
-    {
-        $product = Product::findOrFail($id);
+    // ADD TO CART
+public function addToCart($id)
+{
+    $product = Product::findOrFail($id);
 
-        $cart = session()->get('cart', []);
+    $cart = session()->get('cart', []);
 
-        if(isset($cart[$id])){
-            $cart[$id]['quantity']++;
-        } else {
-            $cart[$id] = [
-                "name" => $product->name,
-                "price" => $product->price,
-                "image" => $product->image,
-                "quantity" => 1
-            ];
-        }
-
-        session()->put('cart', $cart);
-        return back();
+    if(isset($cart[$id])){
+        $cart[$id]['quantity']++;
+    } else {
+        $cart[$id] = [
+            "name"     => $product->name,
+            "price"    => $product->price,
+            "image"    => $product->image,
+            "quantity" => 1
+        ];
     }
+
+    session()->put('cart', $cart);
+
+    return response()->json([
+        'success'   => true,
+        'cartCount' => count($cart),
+        'message'   => $product->name . ' added to cart!'
+        
+    ]);
+}
+    // public function addToCart($id)
+    // {
+    //     $product = Product::findOrFail($id);
+
+    //     $cart = session()->get('cart', []);
+
+    //     if(isset($cart[$id])){
+    //         $cart[$id]['quantity']++;
+    //     } else {
+    //         $cart[$id] = [
+    //             "name" => $product->name,
+    //             "price" => $product->price,
+    //             "image" => $product->image,
+    //             "quantity" => 1
+    //         ];
+    //     }
+
+    //     session()->put('cart', $cart);
+    //     return back();
+    // }
 
     // REMOVE
     public function remove($id)

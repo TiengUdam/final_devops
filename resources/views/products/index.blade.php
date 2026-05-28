@@ -5,11 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Modern Phone Shop</title>
 
-    <!-- Bootstrap 5 & Google Fonts -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
 
     <style>
         :root {
@@ -27,7 +25,7 @@
             background-attachment: fixed;
         }
 
-        /* --- Header / Navbar --- */
+        /* --- Navbar --- */
         .navbar {
             background: rgba(255, 255, 255, 0.8) !important;
             backdrop-filter: blur(10px);
@@ -75,7 +73,6 @@
             background: rgba(255, 255, 255, 0.9);
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             height: 100%;
-            cursor: pointer;
         }
 
         .card:hover {
@@ -83,41 +80,90 @@
             box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
         }
 
+        /* Make the image area look clickable */
         .img-container {
             height: 220px;
             background: #f1f5f9;
             display: flex;
             align-items: center;
             justify-content: center;
+            cursor: pointer;
+        }
+
+        .img-container:hover {
+            background: #e2e8f0;
         }
 
         .card img {
             width: 70%;
             transition: transform 0.5s ease;
             object-fit: contain;
+            pointer-events: none; /* let clicks pass through to container */
         }
 
+        .card-body {
+            cursor: default; /* reset cursor for card body */
+        }
+
+        /* Product name also clickable for modal */
+        .product-name-link {
+            cursor: pointer;
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .product-name-link:hover {
+            color: var(--primary-color);
+        }
+
+        /* Cart button */
         .btn-cart {
             background: var(--primary-color);
             border: none;
             border-radius: 12px;
             padding: 10px 15px;
             color: white;
+            transition: background 0.2s, transform 0.1s;
         }
 
-        /* --- Modal Styling --- */
+        .btn-cart:hover {
+            background: var(--secondary-color);
+            transform: scale(1.05);
+        }
+
+        .btn-cart:active {
+            transform: scale(0.97);
+        }
+
+        /* Cart button loading state */
+        .btn-cart.loading {
+            opacity: 0.7;
+            pointer-events: none;
+        }
+
+        /* Toast notification */
+        .toast-container {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            z-index: 9999;
+        }
+
+        /* --- Modal --- */
         .modal-content {
             border-radius: 25px;
             border: none;
             overflow: hidden;
         }
 
-          footer {
+        /* --- Footer --- */
+        footer {
             background: #1e293b;
             color: #f8fafc;
             padding: 50px 0 20px;
             margin-top: auto;
         }
+
         .footer-title {
             font-weight: 700;
             margin-bottom: 20px;
@@ -142,70 +188,67 @@
 <!-- NAVBAR -->
 <nav class="navbar navbar-expand-lg sticky-top">
     <div class="container">
-        <a class="navbar-brand" href="/"><i class=""></i>Nang Cafe</a>
+        <a class="navbar-brand" href="/"><i class="fas fa-mobile-alt me-2"></i>Dom Phone</a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
             <span class="navbar-toggler-icon"></span>
         </button>
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav me-auto">
-    <!-- Home -->
-    <li class="nav-item">
-        <a class="nav-link {{ request()->is('/') ? 'active fw-bold' : '' }}"
-           href="{{ route('home') }}">Home</a>
-    </li>
-
-    <!-- Shop -->
-    <li class="nav-item">
-        <a class="nav-link {{ request()->is('shop') ? 'active fw-bold' : '' }}"
-           href="{{ route('shop') }}">Shop</a>
-    </li>
-
-    <!-- Categories -->
-    <li class="nav-item">
-        <a class="nav-link {{ request()->is('categories') ? 'active fw-bold' : '' }}"
-           href="{{ route('categories') }}">Categories</a>
-    </li>
-</ul>
-             <div class="d-flex align-items-center">
+                <li class="nav-item">
+                    <a class="nav-link {{ request()->is('/') ? 'active fw-bold' : '' }}" href="/">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {{ request()->is('shop') ? 'active fw-bold' : '' }}" href="/shop">Shop</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {{ request()->is('categories') ? 'active fw-bold' : '' }}" href="/categories">Categories</a>
+                </li>
+            </ul>
+            <div class="d-flex align-items-center">
                 <a href="/create" class="btn btn-outline-primary rounded-pill px-4 me-3">
                     <i class="fas fa-plus me-1"></i> Add
                 </a>
                 <a href="/cart" class="position-relative text-dark fs-5">
                     <i class="fas fa-shopping-basket"></i>
-                    <span class="badge-count">{{ session('cart') ? count(session('cart')) : 0 }}</span>
+                    <span id="cart-count" class="badge-count">{{ session('cart') ? count(session('cart')) : 0 }}</span>
                 </a>
             </div>
         </div>
     </div>
 </nav>
 
-
+<!-- MAIN CONTENT -->
 <div class="container py-5">
 
-    <!-- SEARCH & FILTER SECTION (បង្វិលមកវិញហើយ) -->
+    <!-- SEARCH & FILTER -->
     <div class="filter-section">
         <form class="row g-3" method="GET" action="/">
             <div class="col-lg-4 col-md-6">
                 <div class="input-group">
-                    <span class="input-group-text bg-transparent border-end-0"><i class="fas fa-search text-muted"></i></span>
-                    <input type="text" name="search" class="form-control border-start-0 ps-0" placeholder="Search for drink" value="{{ request('search') }}">
+                    <span class="input-group-text bg-transparent border-end-0">
+                        <i class="fas fa-search text-muted"></i>
+                    </span>
+                    <input type="text" name="search" class="form-control border-start-0 ps-0"
+                           placeholder="Search for products..." value="{{ request('search') }}">
                 </div>
             </div>
             <div class="col-lg-2 col-md-3">
                 <select name="category" class="form-select border-0 bg-light">
                     <option value="">All Brands</option>
-                    <option value="iPhone" {{ request('category') == 'iPhone' ? 'selected' : '' }}>Matcha</option>
-                    <option value="Samsung" {{ request('category') == 'Samsung' ? 'selected' : '' }}>Coffee</option>
-                    <option value="Oppo" {{ request('category') == 'Oppo' ? 'selected' : '' }}>Frappe</option>
-                    <option value="Vivo" {{ request('category') == 'Vivo' ? 'selected' : '' }}>Hot</option>
-                    <option value="Nokia" {{ request('category') == 'Nokia' ? 'selected' : '' }}>Tea</option>
+                    <option value="iPhone"  {{ request('category') == 'iPhone'  ? 'selected' : '' }}>iPhone</option>
+                    <option value="Samsung" {{ request('category') == 'Samsung' ? 'selected' : '' }}>Samsung</option>
+                    <option value="Oppo"    {{ request('category') == 'Oppo'    ? 'selected' : '' }}>Oppo</option>
+                    <option value="Vivo"    {{ request('category') == 'Vivo'    ? 'selected' : '' }}>Vivo</option>
+                    <option value="Nokia"   {{ request('category') == 'Nokia'   ? 'selected' : '' }}>Nokia</option>
                 </select>
             </div>
             <div class="col-lg-4 col-md-6">
                 <div class="input-group">
-                    <input type="number" name="min" class="form-control bg-light border-0" placeholder="Min $" value="{{ request('min') }}">
+                    <input type="number" name="min_price" class="form-control bg-light border-0"
+                           placeholder="Min $" value="{{ request('min_price') }}">
                     <span class="input-group-text bg-light border-0">-</span>
-                    <input type="number" name="max" class="form-control bg-light border-0" placeholder="Max $" value="{{ request('max') }}">
+                    <input type="number" name="max_price" class="form-control bg-light border-0"
+                           placeholder="Max $" value="{{ request('max_price') }}">
                 </div>
             </div>
             <div class="col-lg-2">
@@ -219,54 +262,68 @@
     <div class="row g-4">
         @foreach($products as $product)
         <div class="col-xl-3 col-lg-4 col-md-6">
-            <!-- CLICK CARD TO SHOW MODAL -->
-            <div class="card shadow-sm" data-bs-toggle="modal" data-bs-target="#productModal{{ $product->id }}">
-                <div class="img-container">
-                    <img src="{{ $product->image }}" alt="{{ $product->name }}">
+            <div class="card shadow-sm">
+
+                {{-- ✅ Only the IMAGE opens the modal --}}
+                <div class="img-container"
+                     data-bs-toggle="modal"
+                     data-bs-target="#productModal{{ $product->id }}">
+                    <img src="{{ asset($product->image) }}" alt="{{ $product->name }}">
                 </div>
+
                 <div class="card-body">
                     <p class="text-uppercase text-muted small mb-1">{{ $product->category }}</p>
-                    <h5 class="fw-bold text-truncate">{{ $product->name }}</h5>
-                    <div class="d-flex justify-content-between align-items-center mt-3">
-                        <span class="product-price fw-bold text-primary fs-5">${{ number_format($product->price, 2) }}</span>
 
-                        <!-- STOP PROPAGATION ON CART BUTTON -->
-                        <form action="/add-to-cart/{{ $product->id }}" method="POST" onclick="event.stopPropagation();">
-                            @csrf
-                            <button type="submit" class="btn btn-cart">
-                                <i class="fas fa-cart-plus"></i>
-                            </button>
-                        </form>
+                    {{-- Product name also opens modal --}}
+                    <h5 class="fw-bold text-truncate product-name-link"
+                        data-bs-toggle="modal"
+                        data-bs-target="#productModal{{ $product->id }}">
+                        {{ $product->name }}
+                    </h5>
+
+                    <div class="d-flex justify-content-between align-items-center mt-3">
+                        <span class="fw-bold text-primary fs-5">${{ number_format($product->price, 2) }}</span>
+
+                        {{-- ✅ Cart button — no modal, no event.stopPropagation needed --}}
+                        <button type="button"
+                                class="btn btn-cart"
+                                onclick="addToCart({{ $product->id }}, this)">
+                            <i class="fas fa-cart-plus"></i>
+                        </button>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- MODAL DETAIL -->
+        <!-- PRODUCT DETAIL MODAL -->
         <div class="modal fade" id="productModal{{ $product->id }}" tabindex="-1" aria-hidden="true">
             <div class="modal-dialog modal-dialog-centered modal-lg">
                 <div class="modal-content">
                     <div class="modal-body p-0">
                         <div class="row g-0">
                             <div class="col-md-6 bg-light d-flex align-items-center justify-content-center p-4">
-                                <img src="{{ $product->image }}" class="img-fluid" style="max-height: 400px; object-fit: contain;">
+                                <img src="{{ asset($product->image) }}"
+                                     class="img-fluid"
+                                     style="max-height: 400px; object-fit: contain;"
+                                     alt="{{ $product->name }}">
                             </div>
                             <div class="col-md-6 p-4 p-lg-5">
-                                <div class="d-flex justify-content-between">
-                                    <span class="badge bg-primary-subtle text-primary mb-2">{{ $product->category }}</span>
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <span class="badge bg-primary-subtle text-primary">{{ $product->category }}</span>
                                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                                 </div>
-                                <h2 class="fw-bold">{{ $product->name }}</h2>
+                                <h2 class="fw-bold mt-2">{{ $product->name }}</h2>
                                 <h3 class="text-primary fw-bold my-4">${{ number_format($product->price, 2) }}</h3>
                                 <h6 class="fw-bold">Description:</h6>
-                                <p class="text-muted">{{ $product->description ?? 'Premium smartphone with high performance and elegant design.' }}</p>
+                                <p class="text-muted">
+                                    {{ $product->description ?? 'Premium smartphone with high performance and elegant design.' }}
+                                </p>
                                 <div class="d-grid mt-5">
-                                    <form action="/add-to-cart/{{ $product->id }}" method="POST">
-                                        @csrf
-                                        <button type="submit" class="btn btn-primary py-3 fw-bold rounded-3">
-                                            <i class="fas fa-shopping-cart me-2"></i> Add to Cart
-                                        </button>
-                                    </form>
+                                    <button type="button"
+                                            class="btn btn-primary py-3 fw-bold rounded-3"
+                                            onclick="addToCart({{ $product->id }}, this, true)">
+                                        <i class="fas fa-shopping-cart me-2"></i> Add to Cart
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -278,13 +335,25 @@
     </div>
 </div>
 
+<!-- TOAST NOTIFICATION -->
+<div class="toast-container">
+    <div id="cartToast" class="toast align-items-center text-white bg-success border-0" role="alert" aria-live="assertive">
+        <div class="d-flex">
+            <div class="toast-body fw-semibold" id="toastMessage">
+                Added to cart!
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+        </div>
+    </div>
+</div>
+
 <!-- FOOTER -->
 <footer>
     <div class="container">
         <div class="row">
             <div class="col-md-4 mb-4">
-                <h5 class="footer-title">Nang Cafe</h5>
-                <p class="text-secondary">Welcome to coffee shop</p>
+                <h5 class="footer-title">Dom Phone</h5>
+                <p class="text-secondary">Welcome to phone shop</p>
                 <div class="mt-3">
                     <a href="#" class="text-white me-3 fs-5"><i class="fab fa-facebook"></i></a>
                     <a href="#" class="text-white me-3 fs-5"><i class="fab fa-telegram"></i></a>
@@ -311,10 +380,68 @@
             </div>
         </div>
         <hr class="border-secondary mt-4">
-        <p class="text-center text-secondary small mb-0">&copy; Nang Cafe. All rights reserved.</p>
+        <p class="text-center text-secondary small mb-0">&copy; Dom Shop. All rights reserved.</p>
     </div>
 </footer>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>/script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+/**
+ * addToCart(productId, buttonEl, closeModal)
+ *
+ * - productId    : the product's ID
+ * - buttonEl     : the button that was clicked (for loading state)
+ * - closeModal   : if true, close the modal after adding (called from modal button)
+ */
+function addToCart(productId, buttonEl, closeModal = false) {
+    // Show loading state on button
+    buttonEl.classList.add('loading');
+    const originalHTML = buttonEl.innerHTML;
+    buttonEl.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+
+    fetch(`/add-to-cart/${productId}`, {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+        }
+    })
+    .then(response => {
+        if (!response.ok) throw new Error('Network error');
+        return response.json();
+    })
+    .then(data => {
+        if (data.success) {
+            // Update cart badge
+            document.getElementById('cart-count').innerText = data.cartCount;
+
+            // Show toast instead of alert
+            document.getElementById('toastMessage').innerText = data.message;
+            const toastEl = document.getElementById('cartToast');
+            const toast = new bootstrap.Toast(toastEl, { delay: 2500 });
+            toast.show();
+
+            // Close modal if called from inside modal
+            if (closeModal) {
+                const modalEl = document.getElementById(`productModal${productId}`);
+                const modalInstance = bootstrap.Modal.getInstance(modalEl);
+                if (modalInstance) modalInstance.hide();
+            }
+        }
+    })
+    .catch(err => {
+        console.error('Cart error:', err);
+        alert('Something went wrong. Please try again.');
+    })
+    .finally(() => {
+        // Restore button
+        buttonEl.classList.remove('loading');
+        buttonEl.innerHTML = originalHTML;
+    });
+}
+</script>
+
 </body>
 </html>

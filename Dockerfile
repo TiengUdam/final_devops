@@ -1,6 +1,7 @@
-FROM php:8.2-cli
+FROM php:8.2-fpm
 
 RUN apt-get update && apt-get install -y \
+    nginx \
     libpq-dev \
     libonig-dev \
     libxml2-dev \
@@ -21,11 +22,14 @@ COPY . .
 
 RUN composer dump-autoload --optimize
 
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+
 RUN chown -R www-data:www-data storage bootstrap/cache \
     && chmod -R 775 storage bootstrap/cache
 
-EXPOSE 8080
+EXPOSE 80
 
 CMD php artisan config:cache && \
     php artisan migrate --force && \
-    php artisan serve --host=0.0.0.0 --port=${PORT:-8080}
+    php-fpm -D && \
+    nginx -g "daemon off;"
